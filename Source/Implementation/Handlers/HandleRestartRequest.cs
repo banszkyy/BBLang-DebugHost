@@ -40,6 +40,12 @@ partial class BytecodeDebugAdapter
             StopReason = null;
         }
 
+        if (Profiler is not null)
+        {
+            Profiler = null;
+            StartProfiling();
+        }
+
         Log.Trace($" creating runtime thread");
         RuntimeThread = new(RuntimeImpl)
         {

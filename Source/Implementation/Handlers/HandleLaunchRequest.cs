@@ -41,6 +41,11 @@ partial class BytecodeDebugAdapter
 
         NoDebug = arguments.NoDebug ?? false;
         StopOnEntry = arguments.ConfigurationProperties.GetValueAsBool("stopOnEntry") ?? false;
+        if (arguments.ConfigurationProperties.GetValueAsBool("profile") ?? false)
+        {
+            Profiler = new LanguageCore.Profiling.GoogleProfiler(DebugInformation);
+            ProfilerTick = 0;
+        }
 
         Log.Trace($"Preparing");
         IO = new();

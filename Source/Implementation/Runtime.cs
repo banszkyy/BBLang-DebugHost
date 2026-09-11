@@ -30,6 +30,8 @@ partial class BytecodeDebugAdapter
     StopReason? StopReason;
     int Time;
     bool StopOnEntry;
+    LanguageCore.Profiling.Profiler? Profiler;
+    ulong ProfilerTick;
 
     void RuntimeImpl()
     {
@@ -167,6 +169,14 @@ partial class BytecodeDebugAdapter
             try
             {
                 _processor.Tick();
+
+                if (Profiler is not null)
+                {
+                    using (SyncLock.EnterScope())
+                    {
+                        Profiler?.Sample(_processor.GetState(), ++ProfilerTick);
+                    }
+                }
             }
             catch (RuntimeException ex)
             {
@@ -226,7 +236,7 @@ partial class BytecodeDebugAdapter
                                     informationGathered = true;
                                 }
 
-                                if (TryEvaluate(breakpoint.Condition, StackFrames.Count > 0 ? StackFrames[0].Id : null, diagnostics, out bool result, out var error))
+                                if (TryEvaluate(breakpoint.Condition, StackFrames.Count > 0 ? StackFrames[0].Id : null, diagnostics, out bool result, out RuntimeException? error))
                                 {
                                     if (!result) goto skip;
                                 }
@@ -331,6 +341,14 @@ partial class BytecodeDebugAdapter
             {
                 Protocol.SendEvent(new ExitedEvent() { ExitCode = 0 });
                 Protocol.SendEvent(new TerminatedEvent());
+            }
+        }
+
+        if (!IsRestarting)
+        {
+            using (SyncLock.EnterScope())
+            {
+                StopProfiling(out _);
             }
         }
 

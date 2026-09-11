@@ -25,6 +25,9 @@ partial class BytecodeDebugAdapter : BytecodeDebugAdapterBase
     {
         AllowProceedEvent = new ManualResetEvent(true);
         DidProceedEvent = new ManualResetEvent(false);
+
+        base.Protocol.RegisterRequestType<StartProfilingRequest, StartProfilingArguments>(HandleStartProfilingRequest);
+        base.Protocol.RegisterRequestType<StopProfilingRequest, StopProfilingArguments>(HandleStopProfilingRequest);
     }
 
     protected override void ResetSession()
