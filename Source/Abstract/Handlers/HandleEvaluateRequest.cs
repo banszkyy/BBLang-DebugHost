@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Text;
 using LanguageCore;
 using LanguageCore.BBLang.Generator;
@@ -89,6 +90,7 @@ partial class BytecodeDebugAdapterBase
 
             if (compiled.Statements.Length != 1)
             {
+                Log.Debug($"Expression \"{expression}\" compiled into multiple statements:\n{string.Join('\n', compiled.Statements.Select(v => v.ToString()))}");
                 diagnostics.Add(DiagnosticAt.Error($"Expression should only have one value, {compiled.Statements.Length} passed", compiled.Statements[1]));
                 return false;
             }
@@ -349,7 +351,14 @@ partial class BytecodeDebugAdapterBase
                 Category = OutputEvent.CategoryValue.Console,
                 Severity = OutputEvent.SeverityValue.Error,
             });
-            return new EvaluateResponse();
+
+            return new EvaluateResponse("Failed to evaluate", 0)
+            {
+                PresentationHint = new()
+                {
+                    Attributes = VariablePresentationHint.AttributesValue.FailedEvaluation,
+                }
+            };
         }
     }
 }
